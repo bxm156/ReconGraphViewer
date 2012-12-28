@@ -6322,4 +6322,41 @@ private static PathCaseShapeNodeRealizer getSubstrateProductShapeNodeRealizerCom
 	private static void setStackTrace(StackTraceElement[] st) {
 		stackTrace = st;
 	}
+	
+	public static Node createNode(Graph2D graph, Node parentNode, String label, double x, double y, PathCaseShapeNodeRealizer.PathCaseNodeRole role) {
+		NodeRealizer realizer;
+		switch (role) {
+			case REACTION:
+			case GENERICPROCESS:
+				realizer = PathCaseViewGenerator.getGenericProcessShapeNodeRealizer(label, x, y);
+				realizer.setFillColor(Color.ORANGE);
+				break;
+			case SUBSTRATEORPRODUCT:
+			case SPECIES:
+			case SUBSTRATEORPRODUCT_COMMON:
+				realizer = PathCaseViewGenerator.getSubstrateProductShapeNodeRealizer(label, false, x, y);
+				//TableQueries.insertSpecies(repository, n);
+				break;
+			case COMPARTMENT:
+				realizer = PathCaseViewGenerator.getCompartmentShapeNodeRealizer(label);
+				realizer.setLocation(x, y);
+				break;
+			default:
+				realizer = PathCaseViewGenerator.getNullMoleShapeNodeRealizer(label, x, y);
+				break;
+				
+		}
+		
+		Node newNode = null;
+		if(role != PathCaseShapeNodeRealizer.PathCaseNodeRole.COMPARTMENT) {
+			newNode = graph.createNode(x, y, label);
+			graph.getHierarchyManager().setParentNode(newNode, parentNode);
+		} else {
+			newNode = graph.getHierarchyManager().createGroupNode(parentNode);
+		}
+		
+		graph.setRealizer(newNode, realizer);
+		graph.updateViews();
+		return newNode;
+	}	
 }
