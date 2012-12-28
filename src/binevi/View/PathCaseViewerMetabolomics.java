@@ -105,6 +105,44 @@ public class PathCaseViewerMetabolomics extends JPanel {
     HashMap<Integer,HashSet<String>> nodeIndexToID;
 
     HashSet<String> displayedTissues;
+    
+    public String getUUID(Node n) {
+    	Graph2D graph = graphViewer.view.getGraph2D();
+    	NodeRealizer realizer = graph.getRealizer(n);
+    	String name = realizer.getLabelText();
+    	return name + System.nanoTime();
+    }
+    
+    public void addNodeToDataCache(Node n, String pathCaseId) {
+    	Graph2D graph = graphViewer.view.getGraph2D();
+    	HashSet<String> hSet = new HashSet<String>();
+    	hSet.add(pathCaseId);
+    	if(nodeToPathCaseId != null) {
+    		nodeToPathCaseId.put(n, hSet);
+    	}
+    	if(nodeToPathCaseId2 != null) {
+    		nodeToPathCaseId2.put(n, hSet);
+    	}
+    	if(nodeToPathCaseId_Pathway != null) {
+    		nodeToPathCaseId_Pathway.put(n, hSet);
+    	}
+    	if(PathCaseIDToNameMap != null) {
+    		PathCaseIDToNameMap.put(pathCaseId, graph.getLabelText(n));
+    	}
+    	if(PathCaseIDToNameMap2 != null) {
+    		PathCaseIDToNameMap2.put(pathCaseId, graph.getLabelText(n));
+    	}
+    	if(PathCaseIDToNameMap_Pathway != null) {
+    		PathCaseIDToNameMap_Pathway.put(pathCaseId, graph.getLabelText(n));
+    	}
+    }
+    
+    public String getPathCaseIdForNode(Node n) {
+    	HashSet<String> results = nodeToPathCaseId.get(n);
+    	return results.iterator().next();
+    }
+    
+    
 
     //create a panel with dockable pathcase tools
     public PathCaseViewerMetabolomics(PathCaseViewerApplet applet, boolean geneviewer, boolean organismpanel, boolean layoutsaving,boolean mapping2pathway) {
@@ -1247,7 +1285,18 @@ public class PathCaseViewerMetabolomics extends JPanel {
 //            }
 //        });
 //        menu.add(item);
-
+        
+        item = new JMenuItem("Save to SBML File");
+        item.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				
+				//Output SBML File
+				
+			}
+		});
+        menu.add(item);
         menu.show(fileOperations, 0, 15);
     }
 
@@ -2886,6 +2935,17 @@ public class PathCaseViewerMetabolomics extends JPanel {
         }
         return iR;
     }
+    
+    public LinkedList<Node> getGroupNodes(Graph2D graph) {
+    	LinkedList<Node> resultNodes = new LinkedList<Node>();
+    	HierarchyManager hm = HierarchyManager.getInstance(graph);
+    	for(Node n : graph.getNodeArray()) {
+    		if(hm.isGroupNode(n)) {
+    			resultNodes.add(n);
+    		}
+    	}
+    	return resultNodes;
+    }
 
     private void reloadFromMQLRepository(boolean doLayout, String reactionGuids) {
         graphViewer.resetView();
@@ -3617,7 +3677,10 @@ public class PathCaseViewerMetabolomics extends JPanel {
         }
         return menu;
     }
-
+    public PathCaseShapeNodeRealizer.PathCaseNodeRole getNodeRole(Node v) {
+        PathCaseShapeNodeRealizer nr = (PathCaseShapeNodeRealizer) graphViewer.view.getGraph2D().getRealizer(v);
+        return nr.getNodeRole();
+    }
     public String getNodeTipText(Node v) {
         if (bFrozenLoaded){
             if (posToIDandName == null) return "Parameter Specified";//"posToIDandName is null";
@@ -3640,7 +3703,7 @@ public class PathCaseViewerMetabolomics extends JPanel {
             //this branch is for system biology  
             for (String gpid : gpipset) {
                 String name = PathCaseIDToNameMap.get(gpid);
-
+                
                 if (name == null || name.equals("")|| name.equalsIgnoreCase("Unknown")) {name = "Parameter Specified"; return name;}
 
                 if (nr.getNodeRole() == PathCaseShapeNodeRealizer.PathCaseNodeRole.SUBSTRATEORPRODUCT || nr.getNodeRole() == PathCaseShapeNodeRealizer.PathCaseNodeRole.SUBSTRATEORPRODUCT_COMMON)

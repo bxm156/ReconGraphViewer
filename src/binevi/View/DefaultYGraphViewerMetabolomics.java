@@ -17,6 +17,8 @@ import y.layout.hierarchic.IncrementalHierarchicLayouter;
 
 import javax.swing.*;
 
+import binevi.Resources.PathCaseResources.TableQueries;
+
 import edu.cwru.nashua.pathwaysservice.PathwaysService;
 import edu.cwru.nashua.pathwaysservice.PathwaysServiceMetabolomics;
 
@@ -26,6 +28,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.StringTokenizer;
 
 public class DefaultYGraphViewerMetabolomics {
@@ -785,7 +788,7 @@ void boundNodes(Graph2D graph,HierarchyManager hm,Node v){
         if (editMode == null) {
             editMode = new ToolTipEditMode();
             //todo deletion?
-            editMode.allowResizeNodes(false);
+            editMode.allowResizeNodes(true);
             editMode.allowNodeEditing(false);
             editMode.allowNodeCreation(false);
             editMode.allowBendCreation(true);
@@ -843,12 +846,69 @@ void boundNodes(Graph2D graph,HierarchyManager hm,Node v){
 
     /////////////////////////   RIGHT CLICK MENUS /////////////////////
 
-    protected JPopupMenu getSelectionPopupMenu(double x, double y) {
-        return null;
+    protected JPopupMenu getSelectionPopupMenu(final double x,final double y) {
+    	JPopupMenu nodePopup = new JPopupMenu();
+    	
+    	JMenu insertMenu = new JMenu("Insert");
+    	nodePopup.add(insertMenu);
+    	
+    	JMenuItem insertNodeItem = new JMenuItem("Node");
+    	insertNodeItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				displayInsertSpecies(x,y);
+				
+			}
+    		
+    	});
+    	
+    	insertMenu.add(insertNodeItem);
+    	
+        return nodePopup;
     }
     protected JPopupMenu getNodePopupMenu(final Node v) {
 
         JPopupMenu nodePopup = new JPopupMenu();
+
+        JMenu insertMenu = new JMenu("Insert");
+
+
+        PathCaseShapeNodeRealizer.PathCaseNodeRole role = pathCaseGUI.getNodeRole(v);
+        switch(role) {
+        	case GENERICPROCESS:
+        	case REACTION:
+        		 JMenuItem addProduct = new JMenuItem("Product");
+        		 addProduct.addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						displayInsertProduct(v);
+					}
+        			 
+        		 });
+                 insertMenu.add(addProduct);
+                 JMenuItem addReactant = new JMenuItem("Reactant");
+                 addReactant.addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						displayInsertReactant(v);
+					}
+                	 
+                 });
+                 insertMenu.add(addReactant);
+        	     break;
+        	case SUBSTRATEORPRODUCT:
+        	case SPECIES:
+        	case REACTIONSPECIES:
+        		 JMenuItem addReaction = new JMenuItem("Reaction");
+                 insertMenu.add(addReaction);
+                 break;
+        	default:
+            break;
+        }
+        nodePopup.add(insertMenu);
 
 		JMenu bugMenu = new JMenu("Report a Bug");
 		JMenuItem bugSimpleItem = new JMenuItem("Simple Report");
@@ -892,12 +952,22 @@ By Xinjian End*/
     }
 
     private String htmlToString(String toolTip) {
-		String type = toolTip.substring(toolTip.indexOf("<b>")+3, toolTip.indexOf("</b>"));
-		String name;
-		if(toolTip.indexOf("<i>") != -1)
-			name = toolTip.substring(toolTip.indexOf("<i>")+3, toolTip.indexOf("</i>"));
-		else
-			name = toolTip.substring(toolTip.indexOf("</b>")+4, toolTip.indexOf("</body>")); 
+    	String type = "";
+    	try {
+    		type = toolTip.substring(toolTip.indexOf("<b>")+3, toolTip.indexOf("</b>"));
+    	} catch (StringIndexOutOfBoundsException e) {
+    		
+    	}
+		String name = "";
+		try {
+			if(toolTip.indexOf("<i>") != -1) {
+				name = toolTip.substring(toolTip.indexOf("<i>")+3, toolTip.indexOf("</i>"));
+			} else {
+				name = toolTip.substring(toolTip.indexOf("</b>")+4, toolTip.indexOf("</body>"));
+			}
+		} catch (StringIndexOutOfBoundsException e) {
+			
+		}
 		return type+name;
     }
 	private String getMethodHierarchy() {
@@ -913,6 +983,334 @@ By Xinjian End*/
 		return methodCalls.substring(0, methodCalls.length());
 	}
 	
+	private NodeRealizer getCompartmentRealizer(final double x, final double y) {
+		LinkedList<Node> compartments = pathCaseGUI.getGroupNodes(pathCaseGUI.graphViewer.view.getGraph2D());
+		NodeRealizer lastRealizer = null;
+		Node compartment = null;
+		NodeRealizer compartmentRealizer = null;
+		for(Node c : compartments) {
+			NodeRealizer realizer = pathCaseGUI.graphViewer.view.getGraph2D().getRealizer(c);
+			if(realizer.getBoundingBox().contains(x, y)) {
+				//User clicked in a compartment!
+				if(lastRealizer == null) {
+					compartment = c;
+					compartmentRealizer = realizer;
+				}
+				if(lastRealizer != null && (realizer.getWidth()*realizer.getHeight() < lastRealizer.getWidth()*lastRealizer.getHeight())) {
+					compartment = c;
+					compartmentRealizer = realizer;
+				}
+				lastRealizer = realizer;
+			}
+		}
+		
+		return compartmentRealizer;
+	}
+	
+	private void displayInsertReactant(final Node reaction) {
+		final JFrame frame = new JFrame("Insert Reactant");
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(false);
+		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
+		final TextField nodeName = new TextField();
+		Label nodeNameLabel = new Label("Please enter the reactants name:");
+		
+		final double x = graph.getX(reaction);
+		final double y = graph.getY(reaction);
+		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
+		
+		JButton addButton = new JButton();
+		addButton.setText("Add");
+		JButton cancelButton = new JButton();
+		cancelButton.setText("Cancel");
+		
+		addButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Node reactant = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x+10, y+10, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
+				pathCaseGUI.addNodeToDataCache(reactant, pathCaseGUI.getUUID(reactant));
+				Edge edge = graph.createEdge(reaction,reactant);
+				EdgeRealizer er = graph.getRealizer(edge);
+                er.setSourceArrow(Arrow.STANDARD);
+                graph.updateViews(); 
+				frame.dispose();
+			}
+		
+		});
+		
+		cancelButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.dispose();
+			}
+			
+		});
+		
+		//Layout
+		
+		Container pane = frame.getContentPane();
+		pane.setLayout(new BoxLayout(pane,BoxLayout.Y_AXIS));
+		pane.add(nodeNameLabel);
+		pane.add(nodeName);
+		if(compartmentRealizer != null) {
+			JLabel compartmentLabel = new JLabel("Compartment: " + compartmentRealizer.getLabelText());
+			compartmentLabel.setAlignmentX(SwingConstants.LEFT);
+			 pane.add(compartmentLabel);
+		}
+		Container buttonContainer = new Container();
+		buttonContainer.setLayout(new BoxLayout(buttonContainer,BoxLayout.X_AXIS));
+		buttonContainer.add(cancelButton);
+		buttonContainer.add(addButton);
+		pane.add(buttonContainer);
+		
+		frame.pack();
+		frame.setVisible(true);
+	}
+	
+	private void displayInsertProduct(final Node reaction) {
+		final JFrame frame = new JFrame("Insert Product");
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(false);
+		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
+		final TextField nodeName = new TextField();
+		Label nodeNameLabel = new Label("Please enter the product name:");
+		
+		final double x = graph.getX(reaction);
+		final double y = graph.getY(reaction);
+		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
+		
+		JButton addButton = new JButton();
+		addButton.setText("Add");
+		JButton cancelButton = new JButton();
+		cancelButton.setText("Cancel");
+		
+		addButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Node product = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x+10, y+10, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
+				String productId = pathCaseGUI.getUUID(product);
+				pathCaseGUI.addNodeToDataCache(product, productId);
+				String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
+				TableQueries.addSpecies(pathCaseGUI.repository, productId, nodeName.getText(), productId, "", "", "","", true, true, "", true, false);
+				TableQueries.addProductToReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), productId);
+				Edge edge = graph.createEdge(reaction, product);
+				EdgeRealizer er = graph.getRealizer(edge);
+                er.setTargetArrow(Arrow.STANDARD);
+      
+                graph.updateViews(); 
+				frame.dispose();
+			}
+		
+		});
+		
+		cancelButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.dispose();
+			}
+			
+		});
+		
+		//Layout
+		
+		Container pane = frame.getContentPane();
+		pane.setLayout(new BoxLayout(pane,BoxLayout.Y_AXIS));
+		pane.add(nodeNameLabel);
+		pane.add(nodeName);
+		if(compartmentRealizer != null) {
+			JLabel compartmentLabel = new JLabel("Compartment: " + compartmentRealizer.getLabelText());
+			compartmentLabel.setAlignmentX(SwingConstants.LEFT);
+			 pane.add(compartmentLabel);
+		}
+		Container buttonContainer = new Container();
+		buttonContainer.setLayout(new BoxLayout(buttonContainer,BoxLayout.X_AXIS));
+		buttonContainer.add(cancelButton);
+		buttonContainer.add(addButton);
+		pane.add(buttonContainer);
+		
+		frame.pack();
+		frame.setVisible(true);
+	}
+	
+	private void displayInsertReaction(final double x, final double y) {
+		final JFrame frame = new JFrame("Insert Reaction");
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(false);
+		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
+		final TextField nodeName = new TextField();
+		Label nodeNameLabel = new Label("Please enter the reaction name:");
+		
+		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
+		
+		JButton addButton = new JButton();
+		addButton.setText("Add");
+		JButton cancelButton = new JButton();
+		cancelButton.setText("Cancel");
+		
+		addButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Node n = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x, y, PathCaseShapeNodeRealizer.PathCaseNodeRole.REACTION);
+				pathCaseGUI.addNodeToDataCache(n, pathCaseGUI.getUUID(n));
+				graph.updateViews();
+				frame.dispose();
+			}
+		
+		});
+		
+		cancelButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.dispose();
+			}
+			
+		});
+		
+		//Layout
+		
+		Container pane = frame.getContentPane();
+		pane.setLayout(new BoxLayout(pane,BoxLayout.Y_AXIS));
+		pane.add(nodeNameLabel);
+		pane.add(nodeName);
+		if(compartmentRealizer != null) {
+			JLabel compartmentLabel = new JLabel("Compartment: " + compartmentRealizer.getLabelText());
+			compartmentLabel.setAlignmentX(SwingConstants.LEFT);
+			 pane.add(compartmentLabel);
+		}
+		Container buttonContainer = new Container();
+		buttonContainer.setLayout(new BoxLayout(buttonContainer,BoxLayout.X_AXIS));
+		buttonContainer.add(cancelButton);
+		buttonContainer.add(addButton);
+		pane.add(buttonContainer);
+		
+		frame.pack();
+		frame.setVisible(true);
+	}
+	
+	private void displayInsertSpecies(final double x, final double y) {
+		final JFrame frame = new JFrame("Insert Species");
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(false);
+		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
+		final TextField nodeName = new TextField();
+		Label nodeNameLabel = new Label("Please enter the species name:");
+		
+		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
+		
+		JButton addButton = new JButton();
+		addButton.setText("Add");
+		JButton cancelButton = new JButton();
+		cancelButton.setText("Cancel");
+		
+		addButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Node n = PathCaseViewGenerator.createNode(graph, compartmentRealizer.getNode(), nodeName.getText(), x, y, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
+				String tmpPathCaseID = pathCaseGUI.getUUID(n);
+				pathCaseGUI.addNodeToDataCache(n, tmpPathCaseID);
+				TableQueries.addSpecies(pathCaseGUI.repository, tmpPathCaseID, nodeName.getText(), tmpPathCaseID,
+						"", "", "","",true, true, "",true, false);
+				graph.updateViews();
+				frame.dispose();
+			}
+		
+		});
+		
+		cancelButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.dispose();
+			}
+			
+		});
+		
+		//Layout
+		
+		Container pane = frame.getContentPane();
+		pane.setLayout(new BoxLayout(pane,BoxLayout.Y_AXIS));
+		pane.add(nodeNameLabel);
+		pane.add(nodeName);
+		if(compartmentRealizer != null) {
+			JLabel compartmentLabel = new JLabel("Compartment: " + compartmentRealizer.getLabelText());
+			compartmentLabel.setAlignmentX(SwingConstants.LEFT);
+			 pane.add(compartmentLabel);
+		}
+		Container buttonContainer = new Container();
+		buttonContainer.setLayout(new BoxLayout(buttonContainer,BoxLayout.X_AXIS));
+		buttonContainer.add(cancelButton);
+		buttonContainer.add(addButton);
+		pane.add(buttonContainer);
+		
+		frame.pack();
+		frame.setVisible(true);
+	}
+	
+	private void displayInsertCompartment(final double x, final double y) {
+		final JFrame frame = new JFrame("Insert Reaction");
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(false);
+		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
+		final TextField nodeName = new TextField();
+		Label nodeNameLabel = new Label("Please enter the compartment name:");
+		
+		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
+		
+		JButton addButton = new JButton();
+		addButton.setText("Add");
+		JButton cancelButton = new JButton();
+		cancelButton.setText("Cancel");
+		
+		addButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Node n = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x, y, PathCaseShapeNodeRealizer.PathCaseNodeRole.COMPARTMENT);
+				pathCaseGUI.addNodeToDataCache(n, pathCaseGUI.getUUID(n));
+				graph.updateViews();
+				frame.dispose();
+			}
+		
+		});
+		
+		cancelButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.dispose();
+			}
+			
+		});
+		
+		//Layout
+		
+		Container pane = frame.getContentPane();
+		pane.setLayout(new BoxLayout(pane,BoxLayout.Y_AXIS));
+		pane.add(nodeNameLabel);
+		pane.add(nodeName);
+		if(compartmentRealizer != null) {
+			JLabel compartmentLabel = new JLabel("Parent Compartment: " + compartmentRealizer.getLabelText());
+			compartmentLabel.setAlignmentX(SwingConstants.LEFT);
+			 pane.add(compartmentLabel);
+		}
+		Container buttonContainer = new Container();
+		buttonContainer.setLayout(new BoxLayout(buttonContainer,BoxLayout.X_AXIS));
+		buttonContainer.add(cancelButton);
+		buttonContainer.add(addButton);
+		pane.add(buttonContainer);
+		
+		frame.pack();
+		frame.setVisible(true);
+	}
+	
+
 	private void displaySimpleBugReport(String nodeDesc){
 		final JFrame frame = new JFrame("Report a Bug");
 		frame.setLocationRelativeTo(null);
@@ -1227,9 +1625,51 @@ By Xinjian End*/
 		}.run();		
 	}
     
-    protected JPopupMenu getPaperPopupMenu(double x, double y) {
+    protected JPopupMenu getPaperPopupMenu(final double x, final double y) {
 
         JPopupMenu nodePopup = new JPopupMenu();
+        
+
+    	JMenu insertMenu = new JMenu("Insert");
+    	nodePopup.add(insertMenu);
+    	
+    	JMenuItem insertSpeciesItem = new JMenuItem("Species");
+    	insertSpeciesItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				displayInsertSpecies(x,y);
+				
+			}
+    		
+    	});
+    	
+    	insertMenu.add(insertSpeciesItem);
+    	
+    	JMenuItem insertReactionItem = new JMenuItem("Reaction");
+    	insertReactionItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				displayInsertReaction(x, y);
+			}
+  
+    	});
+    	
+    	insertMenu.add(insertReactionItem);
+    	
+    	JMenuItem insertCompartmentItem = new JMenuItem("Compartment");
+    	insertCompartmentItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				displayInsertCompartment(x, y);
+			}
+  
+    	});
+    	
+    	insertMenu.add(insertCompartmentItem);
+        
         if (!PATHCASEQUERYINGENABLED)
             return nodePopup;
 

@@ -136,8 +136,8 @@ public class PathCaseViewerApplet extends JApplet {
         String reactionGuids=this.getParameter("reactionGuids");
         String xmlLocation=this.getParameter("MQLXMLlocation");
 
-        if (WebServiceUrl == null) WebServiceUrl = "";
-        if (RedirectionWebPageUrl == null) RedirectionWebPageUrl = "";
+        if (WebServiceUrl == null) WebServiceUrl = "http://dblab.case.edu/PathCaseRECONService/PathwaysService.asmx";
+        if (RedirectionWebPageUrl == null) RedirectionWebPageUrl = "http://dblab.case.edu/PathCaseRECON/Web/VisualizationInterface.aspx";
 
         if (highlightEntities == null) highlightEntities = "";
         if (setOrganism == null) setOrganism = OrganismTable.ROOTID;
@@ -157,9 +157,9 @@ public class PathCaseViewerApplet extends JApplet {
         if (type == null) type = "";
         if (page == null) page = "";
         if (loadFromBioPAX == null || loadFromBioPAX.equals("")) loadFromBioPAX = "false";
-        if (compartmentH==null) compartmentH="pathway";
+        if (compartmentH==null) compartmentH="Model";
         if (compartmentID==null) compartmentID="";
-        if (modelID==null) modelID="";
+        if (modelID==null) modelID="5a550f91-6126-4183-aa4d-0619bd5da713";
         if (reactionGuids==null) reactionGuids="";
 
         if (layout == null) layout = "";

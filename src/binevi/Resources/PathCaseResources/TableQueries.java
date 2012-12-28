@@ -578,6 +578,20 @@ public class TableQueries {
         }
         return OrganismIdToSimplifiedNames;
     }
+    
+    public static void addSpecies(PathCaseRepository repository, String pathCaseId, String speciesName, String sbmlId,
+    		String initialAmount, String typeId, String initialConcentration,String unitsId, boolean hasOnlyUnitsId,
+    		boolean boundaryCondition, String charge, boolean constant, boolean common) {
+    	repository.speciesTable.insertRow(pathCaseId, speciesName, sbmlId, initialAmount, typeId, initialConcentration,
+    			unitsId, hasOnlyUnitsId, boundaryCondition, charge, constant, common);
+    }
+    
+    public static void addProductToReaction(PathCaseRepository repository, String reactionPathCaseId, String productName, String productId) {
+    	String reactionSpeciesId = "react" + productId;
+    	repository.reactionSpeciesTable.insertRow(reactionSpeciesId, productName, productId, "product","");
+    	repository.reactionToReactionSpeciesTable.insertRow(reactionPathCaseId,reactionSpeciesId);
+    	
+    }
 }
 
 
