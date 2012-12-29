@@ -64,6 +64,7 @@ public class ReactionSpeciesTable {
 //    }
 
    public ArrayList<String> getSpeciesByReacSpecIds(ArrayList<String> reacspecIDs) {
+       if(reacspecIDs==null) return null;
        ArrayList<String> speciesidlist = new ArrayList<String>();
        for (String row : reacspecIDs) {
            speciesidlist.add(getRow(row).SpeciesId);

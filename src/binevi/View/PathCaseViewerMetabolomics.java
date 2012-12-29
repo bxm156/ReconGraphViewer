@@ -854,7 +854,7 @@ public class PathCaseViewerMetabolomics extends JPanel {
 //        });
 //        menu.add(item);
 
-        item = new JMenuItem("Load saved System Biology layout");
+        item = new JMenuItem("Load saved RCMN layout");
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 pool.submit(new Thread() {
@@ -1674,7 +1674,7 @@ public class PathCaseViewerMetabolomics extends JPanel {
 
                         }
                          else
-                        {   createLoaderDialog("Loading Model Data From SystemBiology Web Service");
+                        {   createLoaderDialog("Loading Network Data From RCMN Web Service");
                     //
                     loadSysBioGraph();     // this fucntion load saved layout
 
@@ -3654,7 +3654,7 @@ public class PathCaseViewerMetabolomics extends JPanel {
 
                     if(name.contains(":math:"))
 //                        name = "<b>Reaction: </b><i>" + name.split(":math:")[0] + "</i><br><b>Kinetic Law: </b>"+ name.split(":math:")[1];
-                    name = strReaction + name.split(":math:")[0] + "<br><b>Kinetic Law: </b>"+ name.split(":math:")[1];
+                    name = strReaction + name.split(":math:")[0];// + "<br><b>Kinetic Law: </b>"+ name.split(":math:")[1];
                     else
                         name =strReaction + name;
 //                        name = "<b>Reaction: </b><i>" + name + "</i>";

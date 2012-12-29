@@ -1260,8 +1260,31 @@ public class PathCaseViewGenerator {
         ArrayList<String> compartmentIds = TableQueries.getCompartmentIDListInRepository(repository);
         ArrayList<String> reactionIds = TableQueries.getReactionIDListInRepository(repository);
 
+        ArrayList<String> reactionZombi=new ArrayList<String>();
+
+        int t=0;
         for (String reacid : reactionIds ) {
+            t++;
+            if(t==710)
+            {
+                t++;t--;
+            }
+            if(t==730)
+            {
+                t++;t--;
+            }
+
+            if(t==780)
+            {
+                t++;t--;
+            }
+            if(t==790)
+            {
+                t++;t--;
+            }
+
             String comIdForReac=null;
+
                //finding corresponding speciesId from reaction_species table, then find compartment id corresponding to speciesid. Get reaction---compartment relationship
             ArrayList<String> speciesIds = TableQueries.getSpeciesIDListFromReactionID(repository,reacid);
             if(speciesIds!=null){
@@ -1273,7 +1296,8 @@ public class PathCaseViewGenerator {
                     if(!comp_reaction.containsKey(comIdForReac)) comp_reaction.put(comIdForReac,new ArrayList<String>());
                     comp_reaction.get(comIdForReac).add(reacid);
                 }
-            }
+            } else
+            reactionZombi.add(reacid);
         }
 
         ArrayList<String> allCompIDs=TableQueries.getCompartmentIDListInRepository(repository);
@@ -1383,9 +1407,12 @@ public class PathCaseViewGenerator {
 
 //        System.out.println("Creating Graph3..");
 
-        while(!toCompuComs.isEmpty()){
-            for(String compid:toCompuComs){
+         ArrayList<String> tmptoCompuComs=new ArrayList<String>();
 
+//        while(!toCompuComs.isEmpty()){
+            while(toCompuComs.size()!=tmptoCompuComs.size()){
+            for(String compid:toCompuComs){
+//                String compid=toCompuComs.get(0);
 //                if(compartment_hierarchy.containsKey(compid)) continue;
             //draw compartments part and group them, starting from most inner one.
             String compartmentlabel = "";
@@ -1402,6 +1429,7 @@ public class PathCaseViewGenerator {
             if(speciesIds!=null){
                 comp_species.put(compid,speciesIds);
                 for(String speciesId:speciesIds){
+                    if(idToNodeTable.containsKey(speciesId)) continue;
                     if(reactionGuid.equalsIgnoreCase("") ||(!reactionGuid.equalsIgnoreCase("")&& reacSpecies.contains(speciesId))){
                         boolean iscommon = TableQueries.getSpeciesCommonById(repository, speciesId);
 
@@ -1430,6 +1458,8 @@ public class PathCaseViewGenerator {
 //                System.out.println("Creating Graph4..");
             if(comp_reaction.containsKey(compid)){
                     for(String reacId:comp_reaction.get(compid)){
+                        if(reactionZombi.contains(reacId)) continue;
+
                       boolean iDrawReac=false;
                       boolean isTransportReaction=false;
                       reacSpecies = TableQueries.getSpeciesIDListFromReactionID(repository,reacId);
@@ -1453,6 +1483,8 @@ public class PathCaseViewGenerator {
                       
                       if(iDrawReac){
                         if( reactionGuid.equalsIgnoreCase("")|| (!reactionGuid.equalsIgnoreCase("")&& reacId.equalsIgnoreCase(reactionGuid))){
+                            if(idToNodeTable.containsKey(reacId))continue;
+
                            String reacLabel=TableQueries.getReactionNamebyID(repository,reacId);
 //                            reacLabel+=":math:"+TableQueries.getKineticLawbyID(repository,reacId);
 //                            reacLabel=TableQueries.getKineticLawbyID(repository,reacId);
@@ -1518,6 +1550,7 @@ public class PathCaseViewGenerator {
                                 int iSPACE=15;
                                 int iSpace2=23;
                                 if(iReacCount==0 && iProdCount!=0){//create null substrate
+                                    if(!idToNodeTable.containsKey(reacId+"-NULLREACT")){
                                     String nullLabel="NULL REACT";
                                    Node reacnode = graph.createNode();
                 //                       ShapeNodeRealizer reacr = getGenericProcessShapeNodeRealizer(reacLabel);
@@ -1550,10 +1583,12 @@ public class PathCaseViewGenerator {
                                    HashSet<String> reaclist = new HashSet<String>();
                                    reaclist.add(reacId+"-NULLREACT");
                                    nodeToIdsTable.put(reacnode, reaclist);
-                            }
+                                    }
+                                }
 
                                 if(iProdCount==0 && iReacCount!=0){//create null substrate
-                                   String nullLabel="NULL PRODUCT";
+                                    if(!idToNodeTable.containsKey(reacId+"-NULLPROD")){
+                                    String nullLabel="NULL PRODUCT";
                                    Node reacnode = graph.createNode();
                 //                       ShapeNodeRealizer reacr = getGenericProcessShapeNodeRealizer(reacLabel);
                                    ShapeNodeRealizer reacr;
@@ -1588,7 +1623,7 @@ public class PathCaseViewGenerator {
                                    reaclist.add(reacId+"-NULLPROD");
                                    nodeToIdsTable.put(reacnode, reaclist);
                             }
-
+                                }
                         }
                     }
                     }
@@ -1632,20 +1667,34 @@ public class PathCaseViewGenerator {
                 }
                compartmentQListMap.get(compartment_parent.get(compid)).add(groupNode);
 
-                calculatedComps.add(compid);
-                toCompuComs.remove(compid);
+
+                if(!calculatedComps.contains(compid))
+                        calculatedComps.add(compid);
+
+//                toCompuComs.remove(compid);
+                if(!tmptoCompuComs.contains(compid))
+                    tmptoCompuComs.add(compid);
                 if(compartment_parent.get(compid)!="root"){
                     String paOfcaledcom=compartment_parent.get(compid);
-                    if(!toCompuComs.contains(paOfcaledcom)){
+                    if(tmptoCompuComs.contains(paOfcaledcom) || !toCompuComs.contains(paOfcaledcom))
+//                    if(!toCompuComs.contains(paOfcaledcom))
+                    {
                         bpass=false;
                         for(String comp:compartment_hierarchy.get(paOfcaledcom)){
                         //if the parent has uncalculated compartment, just pass
                             if(!calculatedComps.contains(comp)){ bpass=true; break;}
                         }
-                        if(!bpass) {toCompuComs.add(paOfcaledcom);break;}
+                        if(!bpass)
+                            {
+                                if(!toCompuComs.contains(paOfcaledcom))
+                                {toCompuComs.add(paOfcaledcom);
+                                break;}
+//                                continue;
+                            }
                     }
                 }else break;
-                if(toCompuComs.isEmpty()) break;
+//                if(toCompuComs.isEmpty()) break;
+              if(toCompuComs.size()==tmptoCompuComs.size()) break;
             }
         }
 
@@ -1667,7 +1716,8 @@ public class PathCaseViewGenerator {
 
 //        System.out.println("Creating Graph9..");
         for(String reacid:reactionIds){
-
+                 if(reactionZombi.contains(reacid))
+                     continue;
 
                       boolean isTransportReaction=false;
                       reacSpecies = TableQueries.getSpeciesIDListFromReactionID(repository,reacid);
@@ -1721,7 +1771,7 @@ public class PathCaseViewGenerator {
 //                           }else
 //                           er=new ArcEdgeRealizer();
 
-//                           er.setLineType(LineType.LINE_7);                           
+//                           er.setLineType(LineType.LINE_7);
 //                           if(TableQueries.getReactionReversibleInRepository(repository,reacid)){
 //                               sprole=TableQueries.getSpeciesRoleFromSpeciesID(repository,reacid,spid);
 //                                if(sprole.equalsIgnoreCase("Modifier")){
@@ -1757,6 +1807,9 @@ public class PathCaseViewGenerator {
                            }
 //                           if(!compidofSpec.equalsIgnoreCase(compid) && !(er.getLineColor().equals(Color.red)))er.setLineColor(Color.lightGray);       //gray out cross compartment lines if it's not modifier
                            if(isTransportReaction) er.setLineColor(Color.lightGray);
+                           else er.setLineColor(Color.gray);
+//                           er.setVisible(false);
+//                           er.setLayer((byte)0);
                            graph.setRealizer(edge,er);
 //                           TableQueries.getSpeciesRoleFromReactionSpeciesID(repository,spid)
                            //er.setTargetArrow(Arrow.STANDARD);
@@ -1878,6 +1931,15 @@ public class PathCaseViewGenerator {
 
 //        System.out.println("Creating Graph4..");
 //        System.out.println("Now the model has comparments:"+getGoupNodesNum(graph));
+
+//        HashMap<Node, HashSet<String>> nodeToIdsTable2 = new HashMap<Node, HashSet<String>>();
+        
+//        for(Node nd:nodeToIdsTable.keySet())
+//        {
+//            graph.setRealizer(graph.createNode(), graph.getRealizer(nd));
+////            graph.removeNode(nd);
+//        }
+
         return nodeToIdsTable;
        }
 
