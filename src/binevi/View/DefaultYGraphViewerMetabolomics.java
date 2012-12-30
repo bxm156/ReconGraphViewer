@@ -39,6 +39,13 @@ public class DefaultYGraphViewerMetabolomics {
     //Mode variables
     public boolean ISDELETIONENABLED = false;
     public boolean PATHCASEQUERYINGENABLED = true;
+    
+    //EDITING variables
+    public Node lastSelectedNode = null;
+    public static enum LINK_TYPE {
+    	REACTION_TO_PRODUCT, NONE, REACTION_TO_REACTANT
+    }
+    public LINK_TYPE linkMode = LINK_TYPE.NONE;
 
                             
     //Graph modes
@@ -852,7 +859,7 @@ void boundNodes(Graph2D graph,HierarchyManager hm,Node v){
     	JMenu insertMenu = new JMenu("Insert");
     	nodePopup.add(insertMenu);
     	
-    	JMenuItem insertNodeItem = new JMenuItem("Node");
+    	JMenuItem insertNodeItem = new JMenuItem("Species");
     	insertNodeItem.addActionListener(new ActionListener() {
 
 			@Override
@@ -870,14 +877,18 @@ void boundNodes(Graph2D graph,HierarchyManager hm,Node v){
     protected JPopupMenu getNodePopupMenu(final Node v) {
 
         JPopupMenu nodePopup = new JPopupMenu();
+        
+        
 
         JMenu insertMenu = new JMenu("Insert");
-
+        nodePopup.add(insertMenu);
+        JMenu linkMenu = new JMenu("Link");
 
         PathCaseShapeNodeRealizer.PathCaseNodeRole role = pathCaseGUI.getNodeRole(v);
         switch(role) {
         	case GENERICPROCESS:
         	case REACTION:
+        		
         		 JMenuItem addProduct = new JMenuItem("Product");
         		 addProduct.addActionListener(new ActionListener() {
 
@@ -898,17 +909,88 @@ void boundNodes(Graph2D graph,HierarchyManager hm,Node v){
                 	 
                  });
                  insertMenu.add(addReactant);
+                 JMenuItem linkToProduct = new JMenuItem("to Product");
+                 linkToProduct.addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						displayLinkReactionToProduct(v);
+					}
+                	 
+                 });
+                 linkMenu.add(linkToProduct);
+                 JMenuItem linkToReactant = new JMenuItem("to Reactant");
+                 linkToReactant.addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						displayLinkReactionToReactant(v);
+					}
+                	 
+                 });
+                 linkMenu.add(linkToReactant);
+                 nodePopup.add(linkMenu);
         	     break;
         	case SUBSTRATEORPRODUCT:
         	case SPECIES:
         	case REACTIONSPECIES:
+        		if (linkMode != LINK_TYPE.NONE) {
+                	JMenuItem linkHere = new JMenuItem("Link To Here");
+                	linkHere.addActionListener(new ActionListener() {
+
+        				@Override
+        				public void actionPerformed(ActionEvent arg0) {
+        					switch(linkMode) {
+        						case REACTION_TO_PRODUCT:
+        							linkReactionToProduct(lastSelectedNode,v);
+        					        linkMode = LINK_TYPE.NONE;
+        					        lastSelectedNode = null;
+        							break;
+        						case REACTION_TO_REACTANT:
+        							linkReactionToReactant(lastSelectedNode,v);
+        					        linkMode = LINK_TYPE.NONE;
+        					        lastSelectedNode = null;
+        							break;
+        						default:
+        							break;
+        					}
+        					
+        				}
+                		
+                	});
+                	nodePopup.add(linkHere);
+                }
         		 JMenuItem addReaction = new JMenuItem("Reaction");
+        		 addReaction.addActionListener(new ActionListener() {
+        			
+        			 @Override
+        			 public void actionPerformed(ActionEvent arg0) {
+        			
+        			 }
+        			 
+        		 });
                  insertMenu.add(addReaction);
                  break;
         	default:
             break;
         }
-        nodePopup.add(insertMenu);
+        
+        
+        
+        if(linkMode != LINK_TYPE.NONE) {
+        	JMenuItem cancelLink = new JMenuItem("Cancel Link");
+        	cancelLink.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					linkMode = LINK_TYPE.NONE;
+					lastSelectedNode = null;
+				}
+        		
+        	});
+        	nodePopup.add(cancelLink);
+        	
+        }
 
 		JMenu bugMenu = new JMenu("Report a Bug");
 		JMenuItem bugSimpleItem = new JMenuItem("Simple Report");
@@ -951,7 +1033,40 @@ By Xinjian End*/
         return nodePopup;
     }
 
-    private String htmlToString(String toolTip) {
+    protected void linkReactionToReactant(Node reaction, Node reactant) {
+		// TODO Auto-generated method stub
+    	Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
+		pathCaseGUI.addNodeToDataCache(reactant, pathCaseGUI.getUUID(reactant));
+		Edge edge = graph.createEdge(reaction,reactant);
+		EdgeRealizer er = graph.getRealizer(edge);
+        er.setSourceArrow(Arrow.STANDARD);
+        graph.updateViews(); 
+	}
+
+	protected void linkReactionToProduct(Node reaction, Node product) {
+		Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
+		String productId = pathCaseGUI.getUUID(product);
+		String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
+		TableQueries.addProductToReaction(pathCaseGUI.repository, reactionId, graph.getRealizer(product).getLabelText(), productId);
+		Edge edge = graph.createEdge(reaction, product);
+		EdgeRealizer er = graph.getRealizer(edge);
+        er.setTargetArrow(Arrow.STANDARD);
+        graph.updateViews(); 
+	}
+
+
+	protected void displayLinkReactionToReactant(Node v) {
+		// TODO Auto-generated method stub
+		linkMode = LINK_TYPE.REACTION_TO_REACTANT;
+		lastSelectedNode = v;
+	}
+
+	protected void displayLinkReactionToProduct(Node v) {
+		linkMode = LINK_TYPE.REACTION_TO_PRODUCT;
+		lastSelectedNode = v;
+	}
+
+	private String htmlToString(String toolTip) {
     	String type = "";
     	try {
     		type = toolTip.substring(toolTip.indexOf("<b>")+3, toolTip.indexOf("</b>"));
