@@ -1034,10 +1034,11 @@ By Xinjian End*/
     }
 
     protected void linkReactionToReactant(Node reaction, Node reactant) {
-		// TODO Auto-generated method stub
     	Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
-		pathCaseGUI.addNodeToDataCache(reactant, pathCaseGUI.getUUID(reactant));
-		Edge edge = graph.createEdge(reaction,reactant);
+    	String reactantId = pathCaseGUI.getUUID(reactant);
+		String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
+		TableQueries.addReactantToReaction(pathCaseGUI.repository, reactionId, graph.getRealizer(reactant).getLabelText(), reactantId);
+    	Edge edge = graph.createEdge(reaction,reactant);
 		EdgeRealizer er = graph.getRealizer(edge);
         er.setSourceArrow(Arrow.STANDARD);
         graph.updateViews(); 
@@ -1056,7 +1057,6 @@ By Xinjian End*/
 
 
 	protected void displayLinkReactionToReactant(Node v) {
-		// TODO Auto-generated method stub
 		linkMode = LINK_TYPE.REACTION_TO_REACTANT;
 		lastSelectedNode = v;
 	}
@@ -1144,7 +1144,11 @@ By Xinjian End*/
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Node reactant = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x+10, y+10, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
+				String reactantId = pathCaseGUI.getUUID(reactant);
 				pathCaseGUI.addNodeToDataCache(reactant, pathCaseGUI.getUUID(reactant));
+				String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
+				TableQueries.addSpecies(pathCaseGUI.repository, reactantId, nodeName.getText(), reactantId, "", "", "","", true, true, "", true, false);
+				TableQueries.addReactantToReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), reactantId);
 				Edge edge = graph.createEdge(reaction,reactant);
 				EdgeRealizer er = graph.getRealizer(edge);
                 er.setSourceArrow(Arrow.STANDARD);

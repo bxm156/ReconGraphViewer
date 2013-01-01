@@ -7,6 +7,7 @@ import binevi.Parser.PathCaseParsers.SysBioXMLParser;
 import binevi.Parser.PathCaseParsers.MetaboliteXMLParser;
 import binevi.Parser.PathCaseParsers.MQLXMLParser;
 import binevi.Resources.PathCaseResources.*;
+import edu.cwru.nashua.pathwaysservice.ExportSBML;
 import edu.cwru.nashua.pathwaysservice.PathwaysService;
 import edu.cwru.nashua.pathwaysservice.PathwaysServiceMetabolomics;
 import y.base.*;
@@ -26,6 +27,8 @@ import y.view.hierarchy.GroupNodeRealizer;
 import y.layout.*;
 
 import javax.swing.*;
+import javax.xml.parsers.ParserConfigurationException;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -1298,6 +1301,15 @@ public class PathCaseViewerMetabolomics extends JPanel {
 		});
         menu.add(item);
         menu.show(fileOperations, 0, 15);
+    }
+    
+    protected void outputSBML() {
+    	 try {
+			ExportSBML.outputSBML(repository);
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
     protected List createNodeDataList(Graph2D forGraph)

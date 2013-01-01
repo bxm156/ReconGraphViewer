@@ -587,8 +587,15 @@ public class TableQueries {
     }
     
     public static void addProductToReaction(PathCaseRepository repository, String reactionPathCaseId, String productName, String productId) {
-    	String reactionSpeciesId = "react" + productId;
-    	repository.reactionSpeciesTable.insertRow(reactionSpeciesId, productName, productId, "product","");
+    	String reactionSpeciesId = "reaction_product_" + productId;
+    	repository.reactionSpeciesTable.insertRow(reactionSpeciesId, productName, productId, "Product","");
+    	repository.reactionToReactionSpeciesTable.insertRow(reactionPathCaseId,reactionSpeciesId);
+    	
+    }
+    
+    public static void addReactantToReaction(PathCaseRepository repository, String reactionPathCaseId, String reactantName, String reactantId) {
+    	String reactionSpeciesId = "reaction_reactant_" + reactantId;
+    	repository.reactionSpeciesTable.insertRow(reactionSpeciesId, reactantName, reactantId, "Reactant","");
     	repository.reactionToReactionSpeciesTable.insertRow(reactionPathCaseId,reactionSpeciesId);
     	
     }
