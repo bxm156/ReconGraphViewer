@@ -1133,6 +1133,8 @@ By Xinjian End*/
 		final double x = graph.getX(reaction);
 		final double y = graph.getY(reaction);
 		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
+		final String cid = pathCaseGUI.getPathCaseIdForNode(compartmentRealizer.getNode());
+
 		
 		JButton addButton = new JButton();
 		addButton.setText("Add");
@@ -1147,7 +1149,7 @@ By Xinjian End*/
 				String reactantId = pathCaseGUI.getUUID(reactant);
 				pathCaseGUI.addNodeToDataCache(reactant, pathCaseGUI.getUUID(reactant));
 				String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
-				TableQueries.addSpecies(pathCaseGUI.repository, reactantId, nodeName.getText(), reactantId, "", "", "","", true, true, "", true, false);
+				TableQueries.addSpecies(pathCaseGUI.repository, reactantId, nodeName.getText(), reactantId, "", "", "","", true, true, "", true, false,cid);
 				TableQueries.addReactantToReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), reactantId);
 				Edge edge = graph.createEdge(reaction,reactant);
 				EdgeRealizer er = graph.getRealizer(edge);
@@ -1199,6 +1201,8 @@ By Xinjian End*/
 		final double x = graph.getX(reaction);
 		final double y = graph.getY(reaction);
 		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
+		final String cid = pathCaseGUI.getPathCaseIdForNode(compartmentRealizer.getNode());
+
 		
 		JButton addButton = new JButton();
 		addButton.setText("Add");
@@ -1213,7 +1217,7 @@ By Xinjian End*/
 				String productId = pathCaseGUI.getUUID(product);
 				pathCaseGUI.addNodeToDataCache(product, productId);
 				String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
-				TableQueries.addSpecies(pathCaseGUI.repository, productId, nodeName.getText(), productId, "", "", "","", true, true, "", true, false);
+				TableQueries.addSpecies(pathCaseGUI.repository, productId, nodeName.getText(), productId, "", "", "","", true, true, "", true, false,cid);
 				TableQueries.addProductToReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), productId);
 				Edge edge = graph.createEdge(reaction, product);
 				EdgeRealizer er = graph.getRealizer(edge);
@@ -1321,6 +1325,7 @@ By Xinjian End*/
 		Label nodeNameLabel = new Label("Please enter the species name:");
 		
 		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
+		final String cid = pathCaseGUI.getPathCaseIdForNode(compartmentRealizer.getNode());
 		
 		JButton addButton = new JButton();
 		addButton.setText("Add");
@@ -1335,7 +1340,7 @@ By Xinjian End*/
 				String tmpPathCaseID = pathCaseGUI.getUUID(n);
 				pathCaseGUI.addNodeToDataCache(n, tmpPathCaseID);
 				TableQueries.addSpecies(pathCaseGUI.repository, tmpPathCaseID, nodeName.getText(), tmpPathCaseID,
-						"", "", "","",true, true, "",true, false);
+						"", "", "","",true, true, "",true, false,cid);
 				graph.updateViews();
 				frame.dispose();
 			}

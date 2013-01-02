@@ -1294,9 +1294,8 @@ public class PathCaseViewerMetabolomics extends JPanel {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				
 				//Output SBML File
-				
+				outputSBML();
 			}
 		});
         menu.add(item);
@@ -1306,7 +1305,7 @@ public class PathCaseViewerMetabolomics extends JPanel {
     protected void outputSBML() {
     	 try {
 			ExportSBML.outputSBML(repository);
-		} catch (ParserConfigurationException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
