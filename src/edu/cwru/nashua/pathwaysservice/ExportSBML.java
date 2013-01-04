@@ -2,12 +2,14 @@ package edu.cwru.nashua.pathwaysservice;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.w3c.dom.*;
 
 import binevi.Resources.PathCaseResources.PathCaseRepository;
 import binevi.Resources.PathCaseResources.TableQueries;
+import binevi.View.PathCaseViewGenerator;
 
 import javax.xml.parsers.*;
 import javax.xml.transform.*;
@@ -16,7 +18,7 @@ import javax.xml.transform.stream.*;
 
 public class ExportSBML {
 	
-	 public static void outputSBML(PathCaseRepository repository) throws ParserConfigurationException, TransformerException {
+	 public static String generateSBML(PathCaseRepository repository) throws ParserConfigurationException, TransformerException {
     	 DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
          DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
          Document doc = docBuilder.newDocument();
@@ -30,7 +32,7 @@ public class ExportSBML {
          
          //Model
          Element model = doc.createElement("model");
-         model.setAttribute("id", "iAM303");
+         model.setAttribute("id", TableQueries.getModelName(repository));
          sbml.appendChild(model);
          
          //List of Compartments
@@ -61,7 +63,59 @@ public class ExportSBML {
         		 listOfSpecies.appendChild(species);
         	 }
          }
-       
+         
+         //List of Reactions
+         Element listOfReactions = doc.createElement("listOfReactions");
+         model.appendChild(listOfReactions);
+         ArrayList<String> rIds = TableQueries.getReactionIDListInRepository(repository);
+         LinkedList<String> products = new LinkedList<String>();
+         LinkedList<String> reactants = new LinkedList<String>();
+         for (String rid : rIds) {
+        	 products.clear();
+        	 reactants.clear();
+        	 String name = TableQueries.getReactionNamebyID(repository, rid);
+        	 Element reac = doc.createElement("reaction");
+        	 reac.setAttribute("id", rid);
+        	 reac.setAttribute("name", name);
+        	 ArrayList<String> rsList = TableQueries.getSpeciesIDListFromReactionID(repository, rid);
+        	 for (String sid : rsList) {
+        		 String role = TableQueries.getSpeciesRoleFromSpeciesID(repository, rid, sid);
+        		 if (role == null) {
+        			 continue;
+        		 }
+        		 if (role.compareToIgnoreCase("Product") == 0) {
+        			 products.add(sid);
+        		 } else if (role.compareToIgnoreCase("Reactant") == 0) {
+        			 reactants.add(sid);
+        		 } else {
+        			 System.out.println("Role" + role +" was unexpected");
+        			 System.exit(1);
+        		 }
+        	 }
+        	 if (reactants.size() > 0) {
+        		 Element listOfReactants = doc.createElement("listOfReactants");
+        		 for (String rsid : reactants) {
+        			 Element r = doc.createElement("speciesReference");
+        			 r.setAttribute("species", rsid);
+        			 listOfReactants.appendChild(r);
+        		 }
+        		 reac.appendChild(listOfReactants);
+        	 }
+        	 if(products.size() > 0) {
+        		 Element listOfProducts = doc.createElement("listOfProducts");
+        		 for (String psid : products) {
+        			 Element p = doc.createElement("speciesReference");
+        			 p.setAttribute("species",psid);
+        			 listOfProducts.appendChild(p);
+        		 }
+        		 reac.appendChild(listOfProducts);
+        	 }
+        	 //String klay = TableQueries.getKineticLawbyID(repository, rid);
+        	 //System.out.println(klay);
+        	 listOfReactions.appendChild(reac);
+         }
+
+         
          /////////////////
          //Output the XML
 
@@ -77,7 +131,7 @@ public class ExportSBML {
          DOMSource source = new DOMSource(doc);
          trans.transform(source, result);
          String xmlString = sw.toString();
-         System.out.println(xmlString);
+         return xmlString;
     }
 	 
 }

@@ -1294,23 +1294,25 @@ public class PathCaseViewerMetabolomics extends JPanel {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				try{
 				//Output SBML File
-				outputSBML();
+				JFileChooser chooser = new JFileChooser();
+				if(chooser.showSaveDialog(getContentPane()) == JFileChooser.APPROVE_OPTION) {
+					String sbml = ExportSBML.generateSBML(repository);
+					File f = new File(chooser.getSelectedFile().toString());
+					FileWriter fw = new FileWriter(f);
+        			fw.write(sbml);
+        			fw.close();
+				}
+				} catch (Exception e) {
+					
+				}
 			}
 		});
         menu.add(item);
         menu.show(fileOperations, 0, 15);
     }
     
-    protected void outputSBML() {
-    	 try {
-			ExportSBML.outputSBML(repository);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    }
-
     protected List createNodeDataList(Graph2D forGraph)
     {
       List list = new ArrayList(2);

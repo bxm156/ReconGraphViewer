@@ -600,6 +600,9 @@ public class TableQueries {
     	repository.reactionToReactionSpeciesTable.insertRow(reactionPathCaseId,reactionSpeciesId);
     	
     }
+    public static String getModelName(PathCaseRepository repository) {
+    	return repository.modelTable.getNameById();
+    }
 }
 
 
