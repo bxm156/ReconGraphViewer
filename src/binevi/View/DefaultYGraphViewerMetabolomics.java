@@ -1162,7 +1162,6 @@ By Xinjian End*/
 		final JFrame frame = new JFrame("Insert Reactant");
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
-		frame.
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
 		final TextField nodeName = new TextField();
 		Label nodeNameLabel = new Label("Please enter the reactants name:");
