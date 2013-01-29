@@ -587,15 +587,19 @@ public class TableQueries {
     	repository.compartmentToSpeciesTable.insertRow(compartmentId, speciesId);
     }
     
+    public static void addReaction(PathCaseRepository repository, String ReactionID, String ReactionName, String sbmlId) {
+    	repository.reactionsTable.insertRow(ReactionID, ReactionName, sbmlId, false, "", false);
+    }
+    
     public static void addProductToReaction(PathCaseRepository repository, String reactionPathCaseId, String productName, String productId) {
-    	String reactionSpeciesId = "reaction_product_" + productId;
+    	String reactionSpeciesId = "reaction_" + productId;
     	repository.reactionSpeciesTable.insertRow(reactionSpeciesId, productName, productId, "Product","");
     	repository.reactionToReactionSpeciesTable.insertRow(reactionPathCaseId,reactionSpeciesId);
     	
     }
     
     public static void addReactantToReaction(PathCaseRepository repository, String reactionPathCaseId, String reactantName, String reactantId) {
-    	String reactionSpeciesId = "reaction_reactant_" + reactantId;
+    	String reactionSpeciesId = "reaction_" + reactantId;
     	repository.reactionSpeciesTable.insertRow(reactionSpeciesId, reactantName, reactantId, "Reactant","");
     	repository.reactionToReactionSpeciesTable.insertRow(reactionPathCaseId,reactionSpeciesId);
     	
@@ -603,6 +607,18 @@ public class TableQueries {
     public static String getModelName(PathCaseRepository repository) {
     	return repository.modelTable.getNameById();
     }
+    public static void deleteSpecies(PathCaseRepository repository, String speciesId) {
+    	String reactionSpeciesId = "reaction_" + speciesId;
+    	repository.speciesTable.deleteRow(speciesId);
+    	repository.compartmentToSpeciesTable.deleteRow(speciesId);
+    	repository.reactionSpeciesTable.deleteRow(reactionSpeciesId);
+    	repository.reactionToReactionSpeciesTable.deleteReactionSpecies(reactionSpeciesId);
+    }
+    
+    public static void deleteReaction(PathCaseRepository repository, String reactionId) {
+    	repository.reactionsTable.deleteRow(reactionId);
+    }
+    
 }
 
 

@@ -40,6 +40,10 @@ public class ReactionSpeciesTable {
     public void insertRow(String ReactionSpeciesID, String ReactionSpeciesName, String SpeciesId, String RoleId,String Stoichiometry) {
         this.ContentTable.put(ReactionSpeciesID, new ReactionSpeciesTableEntry(ReactionSpeciesID, ReactionSpeciesName, SpeciesId, RoleId,Stoichiometry));
     }
+    
+    public synchronized void deleteRow(String reactionSpeciesId) {
+    	this.ContentTable.remove(reactionSpeciesId);
+    }
 
     public ReactionSpeciesTableEntry getRow(String ReactionSpeciesID) {
         return this.ContentTable.get(ReactionSpeciesID);

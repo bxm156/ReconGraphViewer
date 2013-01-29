@@ -57,6 +57,10 @@ public class ReactionsTable {
     public void insertRow(String ReactionID, String ReactionName,String sbmlId,boolean isReversible,String KineticLawId, boolean isFast,String isActive) {
         this.ContentTable.put(ReactionID, new ReactionsTableEntry(ReactionID, ReactionName,sbmlId,isReversible,KineticLawId, isFast,isActive));
     }
+    
+    public void deleteRow(String ReactionID) {
+    	this.ContentTable.remove(ReactionID);
+    }
 
     public ReactionsTableEntry getRow(String ReactionID) {
         return this.ContentTable.get(ReactionID);

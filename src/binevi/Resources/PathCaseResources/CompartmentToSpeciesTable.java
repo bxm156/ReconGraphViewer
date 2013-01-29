@@ -44,6 +44,17 @@ public class CompartmentToSpeciesTable {
         if (index < 0)
             rowlist.add(new CompartmentToSpeciesTableEntry(SpeciesId));
     }
+    
+    public synchronized void deleteRow(String SpeciesID) {
+    	for(String comId: ContentTable.keySet()) {
+    		for(int i=0;i<this.ContentTable.get(comId).size();i++) {
+    			if(this.ContentTable.get(comId).get(i).SpeciesId.equalsIgnoreCase(SpeciesID)) {
+    				ContentTable.get(comId).remove(i);
+    				return;
+    			}
+    		}
+    	}
+    }
 
      public ArrayList<String> getSpeciesByComId(String CompartmentID) {
         ArrayList<CompartmentToSpeciesTableEntry> rowlist=this.ContentTable.get(CompartmentID);

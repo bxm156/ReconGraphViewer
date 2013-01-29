@@ -991,6 +991,19 @@ void boundNodes(Graph2D graph,HierarchyManager hm,Node v){
         	nodePopup.add(cancelLink);
         	
         }
+        
+        JMenuItem delete = new JMenuItem("Delete");
+        delete.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				 deleteNode(v);
+			}
+        	
+        });
+        
+        nodePopup.add(delete);
+        
 
 		JMenu bugMenu = new JMenu("Report a Bug");
 		JMenuItem bugSimpleItem = new JMenuItem("Simple Report");
@@ -1122,10 +1135,34 @@ By Xinjian End*/
 		return compartmentRealizer;
 	}
 	
+	private void deleteNode(final Node node) {
+		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
+		String id = pathCaseGUI.getUUID(node);
+		PathCaseShapeNodeRealizer.PathCaseNodeRole role = pathCaseGUI.getNodeRole(node);
+        switch(role) {
+        	case SPECIES:
+        	case REACTIONSPECIES:
+        	case SUBSTRATEORPRODUCT:
+        		graph.removeNode(node);
+        		TableQueries.deleteSpecies(pathCaseGUI.repository, id);
+        		break;
+        	case REACTION:
+        	case GENERICPROCESS:
+        		graph.removeNode(node);
+        		TableQueries.deleteReaction(pathCaseGUI.repository, id);
+        		break;
+        	default:
+        		break;	
+        }
+	
+		graph.updateViews();
+	}
+	
 	private void displayInsertReactant(final Node reaction) {
 		final JFrame frame = new JFrame("Insert Reactant");
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
+		frame.
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
 		final TextField nodeName = new TextField();
 		Label nodeNameLabel = new Label("Please enter the reactants name:");
@@ -1188,6 +1225,8 @@ By Xinjian End*/
 		
 		frame.pack();
 		frame.setVisible(true);
+		frame.requestFocus();
+		nodeName.requestFocus();
 	}
 	
 	private void displayInsertProduct(final Node reaction) {
@@ -1257,6 +1296,8 @@ By Xinjian End*/
 		
 		frame.pack();
 		frame.setVisible(true);
+		frame.requestFocus();
+		nodeName.requestFocus();
 	}
 	
 	private void displayInsertReaction(final double x, final double y) {
@@ -1279,7 +1320,9 @@ By Xinjian End*/
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Node n = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x, y, PathCaseShapeNodeRealizer.PathCaseNodeRole.REACTION);
-				pathCaseGUI.addNodeToDataCache(n, pathCaseGUI.getUUID(n));
+				String reactionId = pathCaseGUI.getUUID(n);
+				pathCaseGUI.addNodeToDataCache(n, reactionId);
+				TableQueries.addReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), reactionId);
 				graph.updateViews();
 				frame.dispose();
 			}
@@ -1314,6 +1357,8 @@ By Xinjian End*/
 		
 		frame.pack();
 		frame.setVisible(true);
+		frame.requestFocus();
+		nodeName.requestFocus();
 	}
 	
 	private void displayInsertSpecies(final double x, final double y) {
@@ -1375,6 +1420,8 @@ By Xinjian End*/
 		
 		frame.pack();
 		frame.setVisible(true);
+		frame.requestFocus();
+		nodeName.requestFocus();
 	}
 	
 	private void displayInsertCompartment(final double x, final double y) {
@@ -1792,7 +1839,7 @@ By Xinjian End*/
   
     	});
     	
-    	insertMenu.add(insertCompartmentItem);
+    	//insertMenu.add(insertCompartmentItem);
         
         if (!PATHCASEQUERYINGENABLED)
             return nodePopup;

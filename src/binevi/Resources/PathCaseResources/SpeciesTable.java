@@ -55,6 +55,10 @@ public class SpeciesTable {
     public void insertRow(String SpeciesID, String SpeciesName, String sbmlID,String InitialAmount,String SpeciesTypeId,String InitialConcentration,String SubstanceUnitsId,boolean HasOnlySubstanceUnits, boolean BoundaryCondition,String Charge,boolean Constant,boolean Common) {
         this.ContentTable.put(SpeciesID, new SpeciesTableEntry(SpeciesID, SpeciesName,sbmlID,InitialAmount,SpeciesTypeId,InitialConcentration,SubstanceUnitsId,HasOnlySubstanceUnits, BoundaryCondition,Charge,Constant,Common));
     }
+    
+    public void deleteRow(String SpeciesID) {
+    	this.ContentTable.remove(SpeciesID);
+    }
 
     public void updateRowWithRole(String SpeciesID,String sbmlID) {
         this.ContentTable.get(SpeciesID).sbmlID=sbmlID;                

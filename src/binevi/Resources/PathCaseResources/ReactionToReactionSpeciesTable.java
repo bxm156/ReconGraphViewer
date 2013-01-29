@@ -2,6 +2,9 @@ package binevi.Resources.PathCaseResources;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Created by IntelliJ IDEA.
@@ -47,6 +50,24 @@ public class ReactionToReactionSpeciesTable {
             }
             if (index < 0)
                 rowlist.add(new ReactionToReactionSpeciesTableEntry(ReactionSpeciesId));
+        }
+        
+        public synchronized void deleteReactionSpecies(String reacionSpeciesId) {
+        	Iterator<Entry<String, ArrayList<ReactionToReactionSpeciesTableEntry>>> it = ContentTable.entrySet().iterator();
+        	while(it.hasNext()) {
+        		Entry<String, ArrayList<ReactionToReactionSpeciesTableEntry>> pairs = it.next();
+        		ArrayList<ReactionToReactionSpeciesTableEntry> rowlist = pairs.getValue();
+        		Iterator<ReactionToReactionSpeciesTableEntry> it2= rowlist.iterator();
+        		while (it2.hasNext()) {
+        			ReactionToReactionSpeciesTableEntry e = it2.next();
+        			if(e.ReactionSpeciesId.equalsIgnoreCase(reacionSpeciesId)) {
+        				it2.remove();
+        			}
+        		}
+        		if(rowlist.size() == 0) {
+        			it.remove();
+        		}
+        	}
         }
 
       public ArrayList<String> getSpeciesByReacId(String ReacID) {
