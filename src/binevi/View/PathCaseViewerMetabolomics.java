@@ -39,8 +39,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.*;
 import java.util.Queue;
 import java.util.List;
@@ -48,7 +46,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.io.*;
-import javax.jnlp.*;
 
 //import yext.graphml.writer.AttrDataProviderOutputHandler;
 //import yext.graphml.writer.YGraphElementProvider;
@@ -1297,20 +1294,18 @@ public class PathCaseViewerMetabolomics extends JPanel {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				FileSaveService fss;
-				try {
-					fss = (FileSaveService) ServiceManager.lookup("javax.jnlp.FileSaveService");
-				} catch (UnavailableServiceException e) {
-					fss = null;
+				try{
+				//Output SBML File
+				JFileChooser chooser = new JFileChooser();
+				if(chooser.showSaveDialog(getContentPane()) == JFileChooser.APPROVE_OPTION) {
+					String sbml = ExportSBML.generateSBML(repository);
+					File f = new File(chooser.getSelectedFile().toString());
+					FileWriter fw = new FileWriter(f);
+        			fw.write(sbml);
+        			fw.close();
 				}
-				if (fss != null) {
-					try{
-						//Output SBML File
-						String sbml = ExportSBML.generateSBML(repository);
-						fss.saveFileDialog(null,null, new ByteArrayInputStream(sbml.getBytes()),null);
-					} catch (Exception e) {
-						
-					}
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(graphViewer.view, e.getMessage());
 				}
 			}
 		});

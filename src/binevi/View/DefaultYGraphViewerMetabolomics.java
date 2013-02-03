@@ -1005,14 +1005,14 @@ void boundNodes(Graph2D graph,HierarchyManager hm,Node v){
         nodePopup.add(delete);
         
 
-		JMenu bugMenu = new JMenu("Report a Bug");
-		JMenuItem bugSimpleItem = new JMenuItem("Simple Report");
-		JMenuItem bugAdvancedItem = new JMenuItem("Advanced Report");
+		//JMenu bugMenu = new JMenu("Report a Bug");
+		//JMenuItem bugSimpleItem = new JMenuItem("Simple Report");
+		//JMenuItem bugAdvancedItem = new JMenuItem("Advanced Report");
 
-		bugSimpleItem.addActionListener(new SendButtonSimpleListener(htmlToString(getNodeTipText(v))));		
-		bugAdvancedItem.addActionListener(new SendButtonAdvancedListener(htmlToString(getNodeTipText(v))));
-		bugMenu.add(bugSimpleItem);
-		bugMenu.add(bugAdvancedItem);
+		//bugSimpleItem.addActionListener(new SendButtonSimpleListener(htmlToString(getNodeTipText(v))));		
+		//bugAdvancedItem.addActionListener(new SendButtonAdvancedListener(htmlToString(getNodeTipText(v))));
+		//bugMenu.add(bugSimpleItem);
+		//bugMenu.add(bugAdvancedItem);
         
         JMenu menu = new JMenu("Layout Options");
 
@@ -1035,7 +1035,7 @@ By Xinjian End*/
         });
          menu.add(item2);
 
-         nodePopup.add(bugMenu);
+         //nodePopup.add(bugMenu);
 
         if (!PATHCASEQUERYINGENABLED)
             return nodePopup;
