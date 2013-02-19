@@ -581,7 +581,7 @@ public class PathCaseViewerMetabolomics extends JPanel {
             mappingM2PButton.setMaximumSize(new java.awt.Dimension(34, 21));
             mappingM2PButton.setMinimumSize(new java.awt.Dimension(34, 21));
             mappingM2PButton.setPreferredSize(new java.awt.Dimension(34, 21));
-            mappingM2PButton.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/binevi/Resources/Images/pressedcommonM2P.GIF")));//pressedcommonM2P
+            mappingM2PButton.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/binevi/Resources/Images/commonM2P.GIF")));//pressedcommonM2P
             mappingM2PButton.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     JPopupMenu menu = getMappingPWsMenu();
