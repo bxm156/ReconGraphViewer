@@ -52,6 +52,24 @@ public class DefaultYGraphViewerMetabolomics {
     public static enum GRAPH_MODE {
         EDIT, PAN, INTERACTIVE_ZOOM, AREA_ZOOM, MAGNIFIER
     }
+    
+    public int nameCounter = 0;
+    
+    public String getName() {
+    	nameCounter++;
+    	return "m" + nameCounter;
+    }
+    
+    public boolean isWindows() {
+    	return System.getProperty("os.name", "not").contains("win");
+    }
+    
+    public String getDefaultTextValue() {
+    	if (!isWindows()) {
+    		return getName();
+    	}
+    	return "";
+    }
 
     //Access to container GUI
     PathCaseViewerMetabolomics pathCaseGUI;
@@ -959,18 +977,10 @@ void boundNodes(Graph2D graph,HierarchyManager hm,Node v){
                 		
                 	});
                 	nodePopup.add(linkHere);
+                	
                 }
-        		 JMenuItem addReaction = new JMenuItem("Reaction");
-        		 addReaction.addActionListener(new ActionListener() {
-        			
-        			 @Override
-        			 public void actionPerformed(ActionEvent arg0) {
-        			
-        			 }
-        			 
-        		 });
-                 insertMenu.add(addReaction);
-                 break;
+        		nodePopup.remove(insertMenu);
+                break;
         	default:
             break;
         }
@@ -1163,13 +1173,18 @@ By Xinjian End*/
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
-		final TextField nodeName = new TextField();
+		final TextField nodeName = new TextField(getDefaultTextValue());
 		Label nodeNameLabel = new Label("Please enter the reactants name:");
 		
 		final double x = graph.getX(reaction);
 		final double y = graph.getY(reaction);
 		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
 		final String cid = pathCaseGUI.getPathCaseIdForNode(compartmentRealizer.getNode());
+		
+		if(!isWindows()) {
+			insertReactant(reaction, frame, graph, nodeName, y, y, compartmentRealizer, cid);
+			return;
+		}
 
 		
 		JButton addButton = new JButton();
@@ -1181,16 +1196,8 @@ By Xinjian End*/
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Node reactant = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x+10, y+10, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
-				String reactantId = pathCaseGUI.getUUID(reactant);
-				pathCaseGUI.addNodeToDataCache(reactant, pathCaseGUI.getUUID(reactant));
-				String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
-				TableQueries.addSpecies(pathCaseGUI.repository, reactantId, nodeName.getText(), reactantId, "", "", "","", true, true, "", true, false,cid);
-				TableQueries.addReactantToReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), reactantId);
-				Edge edge = graph.createEdge(reaction,reactant);
-				EdgeRealizer er = graph.getRealizer(edge);
-                er.setSourceArrow(Arrow.STANDARD);
-                graph.updateViews(); 
+				insertReactant(reaction, frame, graph, nodeName, x, y,
+						compartmentRealizer, cid);
 				frame.dispose();
 			}
 		
@@ -1233,7 +1240,7 @@ By Xinjian End*/
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
-		final TextField nodeName = new TextField();
+		final TextField nodeName = new TextField(getDefaultTextValue());
 		Label nodeNameLabel = new Label("Please enter the product name:");
 		
 		final double x = graph.getX(reaction);
@@ -1241,6 +1248,10 @@ By Xinjian End*/
 		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
 		final String cid = pathCaseGUI.getPathCaseIdForNode(compartmentRealizer.getNode());
 
+		if(!isWindows()) {
+			insertProduct(reaction, graph, nodeName, y, y, compartmentRealizer, cid);
+			return;
+		}
 		
 		JButton addButton = new JButton();
 		addButton.setText("Add");
@@ -1251,17 +1262,8 @@ By Xinjian End*/
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Node product = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x+10, y+10, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
-				String productId = pathCaseGUI.getUUID(product);
-				pathCaseGUI.addNodeToDataCache(product, productId);
-				String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
-				TableQueries.addSpecies(pathCaseGUI.repository, productId, nodeName.getText(), productId, "", "", "","", true, true, "", true, false,cid);
-				TableQueries.addProductToReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), productId);
-				Edge edge = graph.createEdge(reaction, product);
-				EdgeRealizer er = graph.getRealizer(edge);
-                er.setTargetArrow(Arrow.STANDARD);
-      
-                graph.updateViews(); 
+				insertProduct(reaction, graph, nodeName, x, y,
+						compartmentRealizer, cid); 
 				frame.dispose();
 			}
 		
@@ -1304,10 +1306,15 @@ By Xinjian End*/
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
-		final TextField nodeName = new TextField();
+		final TextField nodeName = new TextField(getDefaultTextValue());
 		Label nodeNameLabel = new Label("Please enter the reaction name:");
 		
 		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
+		
+		if(!isWindows()) {
+			insertReaction(x, y, graph, nodeName, compartmentRealizer);
+			return;
+		}
 		
 		JButton addButton = new JButton();
 		addButton.setText("Add");
@@ -1318,11 +1325,7 @@ By Xinjian End*/
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Node n = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x, y, PathCaseShapeNodeRealizer.PathCaseNodeRole.REACTION);
-				String reactionId = pathCaseGUI.getUUID(n);
-				pathCaseGUI.addNodeToDataCache(n, reactionId);
-				TableQueries.addReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), reactionId);
-				graph.updateViews();
+				insertReaction(x, y, graph, nodeName, compartmentRealizer);
 				frame.dispose();
 			}
 		
@@ -1365,11 +1368,16 @@ By Xinjian End*/
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
-		final TextField nodeName = new TextField();
+		final TextField nodeName = new TextField(getDefaultTextValue());
 		Label nodeNameLabel = new Label("Please enter the species name:");
 		
 		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
 		final String cid = pathCaseGUI.getPathCaseIdForNode(compartmentRealizer.getNode());
+		
+		if(!isWindows()) {
+			insertSpecies(x, y, graph, nodeName, compartmentRealizer, cid);
+			return;
+		}
 		
 		JButton addButton = new JButton();
 		addButton.setText("Add");
@@ -1380,12 +1388,7 @@ By Xinjian End*/
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Node n = PathCaseViewGenerator.createNode(graph, compartmentRealizer.getNode(), nodeName.getText(), x, y, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
-				String tmpPathCaseID = pathCaseGUI.getUUID(n);
-				pathCaseGUI.addNodeToDataCache(n, tmpPathCaseID);
-				TableQueries.addSpecies(pathCaseGUI.repository, tmpPathCaseID, nodeName.getText(), tmpPathCaseID,
-						"", "", "","",true, true, "",true, false,cid);
-				graph.updateViews();
+				insertSpecies(x, y, graph, nodeName, compartmentRealizer, cid);
 				frame.dispose();
 			}
 		
@@ -2291,7 +2294,60 @@ By Xinjian End*/
         return layoutmenu;
     }
 
-    //Launches a generic YModule. If the modules provides an option handler display it before the modules gets launched.
+    private void insertReactant(final Node reaction, final JFrame frame,
+			final Graph2D graph, final TextField nodeName, final double x,
+			final double y, final NodeRealizer compartmentRealizer,
+			final String cid) {
+		Node reactant = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x+10, y+10, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
+		String reactantId = pathCaseGUI.getUUID(reactant);
+		pathCaseGUI.addNodeToDataCache(reactant, pathCaseGUI.getUUID(reactant));
+		String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
+		TableQueries.addSpecies(pathCaseGUI.repository, reactantId, nodeName.getText(), reactantId, "", "", "","", true, true, "", true, false,cid);
+		TableQueries.addReactantToReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), reactantId);
+		Edge edge = graph.createEdge(reaction,reactant);
+		EdgeRealizer er = graph.getRealizer(edge);
+		er.setSourceArrow(Arrow.STANDARD);
+		graph.updateViews(); 
+	}
+
+	private void insertProduct(final Node reaction, final Graph2D graph,
+			final TextField nodeName, final double x, final double y,
+			final NodeRealizer compartmentRealizer, final String cid) {
+		Node product = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x+10, y+10, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
+		String productId = pathCaseGUI.getUUID(product);
+		pathCaseGUI.addNodeToDataCache(product, productId);
+		String reactionId = pathCaseGUI.getPathCaseIdForNode(reaction);
+		TableQueries.addSpecies(pathCaseGUI.repository, productId, nodeName.getText(), productId, "", "", "","", true, true, "", true, false,cid);
+		TableQueries.addProductToReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), productId);
+		Edge edge = graph.createEdge(reaction, product);
+		EdgeRealizer er = graph.getRealizer(edge);
+		er.setTargetArrow(Arrow.STANDARD);
+     
+		graph.updateViews();
+	}
+
+	private void insertReaction(final double x, final double y,
+			final Graph2D graph, final TextField nodeName,
+			final NodeRealizer compartmentRealizer) {
+		Node n = PathCaseViewGenerator.createNode(graph,compartmentRealizer.getNode(), nodeName.getText(), x, y, PathCaseShapeNodeRealizer.PathCaseNodeRole.REACTION);
+		String reactionId = pathCaseGUI.getUUID(n);
+		pathCaseGUI.addNodeToDataCache(n, reactionId);
+		TableQueries.addReaction(pathCaseGUI.repository, reactionId, nodeName.getText(), reactionId);
+		graph.updateViews();
+	}
+
+	private void insertSpecies(final double x, final double y,
+			final Graph2D graph, final TextField nodeName,
+			final NodeRealizer compartmentRealizer, final String cid) {
+		Node n = PathCaseViewGenerator.createNode(graph, compartmentRealizer.getNode(), nodeName.getText(), x, y, PathCaseShapeNodeRealizer.PathCaseNodeRole.SPECIES);
+		String tmpPathCaseID = pathCaseGUI.getUUID(n);
+		pathCaseGUI.addNodeToDataCache(n, tmpPathCaseID);
+		TableQueries.addSpecies(pathCaseGUI.repository, tmpPathCaseID, nodeName.getText(), tmpPathCaseID,
+				"", "", "","",true, true, "",true, false,cid);
+		graph.updateViews();
+	}
+
+	//Launches a generic YModule. If the modules provides an option handler display it before the modules gets launched.
     class LaunchModule extends AbstractAction {
         YModule module;
 
