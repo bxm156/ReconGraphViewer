@@ -55,18 +55,22 @@ public class DefaultYGraphViewerMetabolomics {
     
     public int nameCounter = 0;
     
-    public String getName() {
+    public String getName(boolean isReaction) {
     	nameCounter++;
-    	return "m" + nameCounter;
+    	if(isReaction) {
+    		return "r" + nameCounter;
+    	} else {
+    		return "m" + nameCounter;
+    	}
     }
     
     public boolean isWindows() {
     	return System.getProperty("os.name", "not").contains("win");
     }
     
-    public String getDefaultTextValue() {
+    public String getDefaultTextValue(boolean isReaction) {
     	if (!isWindows()) {
-    		return getName();
+    		return getName(isReaction);
     	}
     	return "";
     }
@@ -1173,7 +1177,7 @@ By Xinjian End*/
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
-		final TextField nodeName = new TextField(getDefaultTextValue());
+		final TextField nodeName = new TextField(getDefaultTextValue(false));
 		Label nodeNameLabel = new Label("Please enter the reactants name:");
 		
 		final double x = graph.getX(reaction);
@@ -1240,7 +1244,7 @@ By Xinjian End*/
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
-		final TextField nodeName = new TextField(getDefaultTextValue());
+		final TextField nodeName = new TextField(getDefaultTextValue(false));
 		Label nodeNameLabel = new Label("Please enter the product name:");
 		
 		final double x = graph.getX(reaction);
@@ -1306,7 +1310,7 @@ By Xinjian End*/
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
-		final TextField nodeName = new TextField(getDefaultTextValue());
+		final TextField nodeName = new TextField(getDefaultTextValue(true));
 		Label nodeNameLabel = new Label("Please enter the reaction name:");
 		
 		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
@@ -1368,7 +1372,7 @@ By Xinjian End*/
 		frame.setLocationRelativeTo(null);
 		frame.setResizable(false);
 		final Graph2D graph = pathCaseGUI.graphViewer.view.getGraph2D();
-		final TextField nodeName = new TextField(getDefaultTextValue());
+		final TextField nodeName = new TextField(getDefaultTextValue(false));
 		Label nodeNameLabel = new Label("Please enter the species name:");
 		
 		final NodeRealizer compartmentRealizer = getCompartmentRealizer(x, y);
