@@ -61,6 +61,12 @@ import java.io.*;
 
 public class PathCaseViewerMetabolomics extends JPanel {
 
+	private int fileRev = 0;
+	public File getFileName(String extension) {
+		fileRev++;
+		return new File(System.getProperty("user.home") + "/Desktop/file" + fileRev + extension);
+	}
+	
     //PathCase Constants
     public static final String GUIDSEPERATOR = ";";
     public static final String COLORSEPERATOR = "@";
@@ -581,7 +587,7 @@ public class PathCaseViewerMetabolomics extends JPanel {
             mappingM2PButton.setMaximumSize(new java.awt.Dimension(34, 21));
             mappingM2PButton.setMinimumSize(new java.awt.Dimension(34, 21));
             mappingM2PButton.setPreferredSize(new java.awt.Dimension(34, 21));
-            mappingM2PButton.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/binevi/Resources/Images/commonM2P.GIF")));//pressedcommonM2P
+            mappingM2PButton.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/binevi/Resources/Images/pressedcommonM2P.GIF")));//pressedcommonM2P
             mappingM2PButton.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     JPopupMenu menu = getMappingPWsMenu();
@@ -717,7 +723,7 @@ public class PathCaseViewerMetabolomics extends JPanel {
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 JFileChooser chooser = new JFileChooser();
-
+                chooser.setSelectedFile(getFileName(".jpg"));
                 if (chooser.showSaveDialog(getContentPane()) == JFileChooser.APPROVE_OPTION) {
                     String name = chooser.getSelectedFile().toString();
 
@@ -1297,6 +1303,7 @@ public class PathCaseViewerMetabolomics extends JPanel {
 				try{
 				//Output SBML File
 				JFileChooser chooser = new JFileChooser();
+				chooser.setSelectedFile(getFileName(".sbml"));
 				if(chooser.showSaveDialog(getContentPane()) == JFileChooser.APPROVE_OPTION) {
 					String sbml = ExportSBML.generateSBML(repository);
 					File f = new File(chooser.getSelectedFile().toString());
@@ -1473,7 +1480,9 @@ public class PathCaseViewerMetabolomics extends JPanel {
         public void actionPerformed(ActionEvent e) {
             if (chooser == null) {
                 chooser = new JFileChooser();
+                
             }
+            chooser.setSelectedFile(getFileName(".ygf"));
             if (chooser.showSaveDialog(getContentPane()) == JFileChooser.APPROVE_OPTION) {
                 String name = chooser.getSelectedFile().toString();
                 if (!name.endsWith(".ygf")) name = name + ".ygf";
