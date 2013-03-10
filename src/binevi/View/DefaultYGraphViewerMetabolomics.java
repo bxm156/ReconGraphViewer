@@ -65,7 +65,7 @@ public class DefaultYGraphViewerMetabolomics {
     }
     
     public boolean isWindows() {
-    	return System.getProperty("os.name", "not").contains("win");
+    	return System.getProperty("os.name", "not").toLowerCase().contains("win");
     }
     
     public String getDefaultTextValue(boolean isReaction) {
