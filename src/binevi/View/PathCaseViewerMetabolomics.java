@@ -116,6 +116,13 @@ public class PathCaseViewerMetabolomics extends JPanel {
     HashSet<String> displayedTissues;
     
     public String getUUID(Node n) {
+    	if(nodeToPathCaseId.containsKey(n)) {
+    		HashSet<String> set = nodeToPathCaseId.get(n);
+    		if (set.size() == 1) {
+    			Iterator<String> it = set.iterator();
+    			return it.next();
+    		}
+    	}
     	Graph2D graph = graphViewer.view.getGraph2D();
     	NodeRealizer realizer = graph.getRealizer(n);
     	String name = realizer.getLabelText();
